@@ -9,4 +9,11 @@ prepare:
     new_user: automation
     new_user_group: automation
   children:
-    website:
+
+docker:
+  vars:
+    ansible_user: automation
+  children:
+    webservers_traefik:
+      children:
+        website:
