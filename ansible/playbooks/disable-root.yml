@@ -1,0 +1,24 @@
+- hosts: prepare
+  gather_facts: true
+  tasks:
+  - name: Disable password login
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      state: present
+      regexp: "^PasswordAuthentication"
+      line: "PasswordAuthentication no"
+    register: sshd_password_conf
+
+  - name: Disable root login
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      state: present
+      regexp: "^PermitRootLogin"
+      line: "PermitRootLogin no"
+    register: sshd_root_conf
+
+  - name: Restart SSHd
+    service:
+      name: ssh
+      state: restarted
+    when: sshd_password_conf.changed or sshd_root_conf.changed

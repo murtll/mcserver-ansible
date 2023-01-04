@@ -1,0 +1,12 @@
+website:
+  hosts:
+    mcbrawl.ru:
+      ansible_host: 45.8.99.84
+
+prepare:
+  vars:
+    ansible_user: root
+    new_user: automation
+    new_user_group: automation
+  children:
+    website:
