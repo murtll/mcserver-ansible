@@ -1,8 +1,3 @@
-website:
-  hosts:
-    mcbrawl.ru:
-      ansible_host: 45.8.99.84
-
 prepare:
   vars:
     ansible_user: root
@@ -14,6 +9,17 @@ docker:
   vars:
     ansible_user: automation
   children:
-    webservers_traefik:
-      children:
-        website:
+    traefik:
+
+webservers:
+  children:
+    traefik:
+
+traefik:
+  children:
+    website:
+
+website:
+  hosts:
+    mcbrawl.ru:
+      ansible_host: 45.8.99.84
