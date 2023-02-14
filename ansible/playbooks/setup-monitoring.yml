@@ -1,5 +1,5 @@
 - name: Setup monitoring
-  hosts: website
+  hosts: monitoring
   become: false
   tasks:
     - name: Create network
