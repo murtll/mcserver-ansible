@@ -46,6 +46,7 @@
           --metrics.influxdb2.org={{ influxdb_org }}
           --metrics.influxdb2.bucket={{ influxdb_bucket }}
           --metrics.influxdb2.addrouterslabels
+          --metrics.influxdb2.additionallabels.host={{ ansible_host }}
         labels:
           traefik.enable: "true"
           traefik.http.routers.dashboard.rule: "Host(`traefik.mcbrawl.ru`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
