@@ -40,6 +40,12 @@
           --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=http
           --certificatesresolvers.letsencrypt.acme.email=esskeetiter@gmail.com
           --certificatesresolvers.letsencrypt.acme.storage=/certificates/certificates.json
+          --metrics.influxdb2
+          --metrics.influxdb2.address=http://influxdb:8086
+          --metrics.influxdb2.token={{ influxdb_token }}
+          --metrics.influxdb2.org={{ influxdb_org }}
+          --metrics.influxdb2.bucket={{ influxdb_bucket }}
+          --metrics.influxdb2.addrouterslabels
         labels:
           traefik.enable: "true"
           traefik.http.routers.dashboard.rule: "Host(`traefik.mcbrawl.ru`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"

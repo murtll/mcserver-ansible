@@ -2,9 +2,14 @@
   hosts: monitoring
   become: false
   tasks:
-    - name: Create network
+    - name: Create monitoring network
       community.docker.docker_network:
         name: monitoring-net
+        attachable: true
+
+    - name: Check Traefik network
+      community.docker.docker_network:
+        name: traefik-net
         attachable: true
 
     - name: Create InfluxDB volume
@@ -23,6 +28,9 @@
           - monitoring-influxdb-data:/var/lib/influxdb2
         networks:
           - name: monitoring-net
+            aliases:
+              - influxdb
+          - name: traefik-net
             aliases:
               - influxdb
         env:
