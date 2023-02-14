@@ -1,0 +1,82 @@
+- name: Setup monitoring
+  hosts: website
+  become: false
+  tasks:
+    - name: Create network
+      community.docker.docker_network:
+        name: monitoring-net
+        attachable: true
+
+    - name: Create InfluxDB volume
+      community.docker.docker_volume:
+        name: monitoring-influxdb-data
+
+    - name: Run InfluxDB container
+      community.docker.docker_container:
+        name: monitoring-influxdb
+        image: influxdb:2.6.1-alpine
+        state: started
+        exposed_ports:
+          - 8086
+        restart_policy: always
+        volumes:
+          - monitoring-influxdb-data:/var/lib/influxdb2
+        networks:
+          - name: monitoring-net
+            aliases:
+              - influxdb
+        env:
+          DOCKER_INFLUXDB_INIT_MODE: setup
+          DOCKER_INFLUXDB_INIT_ORG: "{{ influxdb_org }}"
+          DOCKER_INFLUXDB_INIT_BUCKET: "{{ influxdb_bucket }}"
+          DOCKER_INFLUXDB_INIT_RETENTION: "{{ influxdb_retention }}"
+          DOCKER_INFLUXDB_INIT_USERNAME: "{{ influxdb_user }}"
+          DOCKER_INFLUXDB_INIT_PASSWORD: "{{ influxdb_password }}"
+          DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: "{{ influxdb_token }}"
+        healthcheck:
+          test: influx ping
+          interval: 10s
+          retries: 5
+          timeout: 2s
+          start_period: 5s
+        log_driver: json-file
+        log_options:
+          max-size: 10m
+
+    - name: Create Grafana volume
+      community.docker.docker_volume:
+        name: monitoring-grafana-data
+
+    - name: Run Grafana container
+      community.docker.docker_container:
+        name: monitoring-grafana
+        image: grafana/grafana:8.2.6
+        state: started
+        exposed_ports:
+          - 3000
+        restart_policy: always
+        volumes:
+          - monitoring-grafana-data:/var/lib/grafana
+        networks:
+          - name: monitoring-net
+          - name: traefik-net
+        env:
+          GF_SECURITY_ADMIN_USER: "{{ grafana_user }}"
+          GF_SECURITY_ADMIN_PASSWORD: "{{ grafana_password }}"
+        labels:
+          traefik.enable: "true"
+          traefik.docker.network: traefik-net
+          traefik.http.routers.grafana.rule: "Host(`{{ grafana_host }}`)"
+          traefik.http.routers.grafana.entrypoints: https
+          traefik.http.routers.grafana.tls: "true"
+          traefik.http.routers.grafana.tls.certResolver: letsencrypt
+          traefik.http.services.grafana.loadBalancer.server.port: "3000"
+        healthcheck:
+          test: wget --no-verbose --tries=1 --spider http://localhost:3000/healthz
+          interval: 10s
+          retries: 5
+          timeout: 2s
+          start_period: 5s
+        log_driver: json-file
+        log_options:
+          max-size: 1m
