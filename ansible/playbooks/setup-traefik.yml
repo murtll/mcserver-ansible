@@ -49,13 +49,13 @@
           --metrics.influxdb2.additionallabels.host={{ ansible_host }}
         labels:
           traefik.enable: "true"
-          traefik.http.routers.dashboard.rule: "Host(`traefik.mcbrawl.ru`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+          traefik.http.routers.dashboard.rule: "Host(`{{ traefik_dashboard_host }}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
           traefik.http.routers.dashboard.entrypoints: https
           traefik.http.routers.dashboard.tls: "true"
           traefik.http.routers.dashboard.tls.certResolver: letsencrypt
           traefik.http.routers.dashboard.service: api@internal
           traefik.http.routers.dashboard.middlewares: auth
-          traefik.http.middlewares.auth.basicauth.users: "admin:$apr1$bayXJJOm$EStg43nslnoGc3I9oWYuQ0"
+          traefik.http.middlewares.auth.basicauth.users: "{{ traefik_dashboard_basic_auth }}"
         healthcheck:
           test: traefik healthcheck --ping
           interval: 10s
