@@ -21,9 +21,13 @@
 - name: Set manager node availability to drain
   hosts: swarm-manager
   tasks:
+    - name: Get Swarm info
+      community.docker.docker_swarm_info:
+      register: swarm_info
+
     - name: Set manager nodes availability to drain
       community.docker.docker_node:
-        hostname: "{{ inventory_hostname }}"
+        hostname: "{{ swarm_info.swarm_facts.ID }}"
         availability: drain
 
 - name: Join worker nodes to the Swarm
@@ -36,7 +40,11 @@
         advertise_addr: "{{ advertise_addr }}"
         listen_addr: "{{ advertise_addr }}"
 
+    - name: Get Swarm info
+      community.docker.docker_swarm_info:
+      register: swarm_info
+
     - name: Set worker nodes labels
       community.docker.docker_node:
-        hostname: "{{ inventory_hostname }}"
+        hostname: "{{ swarm_info.swarm_facts.ID }}"
         labels: "{{ node_labels }}"
