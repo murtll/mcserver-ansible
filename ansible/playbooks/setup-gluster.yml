@@ -1,0 +1,79 @@
+---
+- name: Setup GlusterFS cluster
+  hosts: storage-volumes
+  become: true
+  vars:
+    filesystem_type: xfs
+    block_size: 512
+  tasks:
+    - name: Make filesystem on Gluster disk # noqa args[module]
+      community.general.filesystem:
+        dev: "{{ gluster_disk }}"
+        fstype: "{{ filesystem_type }}"
+
+    - name: Create mount directory
+      ansible.builtin.file:
+        path: "{{ gluster_mountpoint }}"
+        state: directory
+        mode: u=rw,g=r,o=r
+
+    - name: Mount disk
+      ansible.posix.mount:
+        state: mounted
+        src: "{{ gluster_disk }}"
+        path: "{{ gluster_mountpoint }}"
+        fstype: "{{ filesystem_type }}"
+        opts: defaults
+        passno: 2
+        dump: 1
+
+    - name: Install dependencies
+      ansible.builtin.apt:
+        name:
+          - software-properties-common
+        state: present
+        update_cache: true
+
+    - name: Add Gluster repository
+      ansible.builtin.apt_repository:
+        repo: ppa:gluster/glusterfs-7
+        state: present
+        update_cache: true
+
+    - name: Install GlusterFS
+      ansible.builtin.apt:
+        name:
+          - glusterfs-server
+        state: present
+        update_cache: true
+
+    - name: Start GlusterFS service
+      ansible.builtin.systemd:
+        name: glusterd
+        state: started
+        enabled: true
+
+    - name: Peer Gluster nodes
+      gluster.gluster.gluster_peer:
+        nodes: "{{ groups['storage-volumes'] |
+                   intersect([inventory_hostname]) |
+                   map('extract', hostvars, ['ansible_all_ipv4_addresses']) |
+                   map(attribute='0') }}"
+        state: present
+
+    - name: Create volume directory
+      ansible.builtin.file:
+        path: "{{ gluster_mountpoint }}/gv0-docker-volumes"
+        state: directory
+        group: docker
+        mode: u=rw,g=rw,o=rw
+
+    - name: Create Gluster volume # noqa: run_once[task]
+      gluster.gluster.gluster_volume:
+        state: present
+        name: gv0-docker-volumes
+        cluster: "{{ groups['storage-volumes'] |
+                     map('extract', hostvars, ['ansible_all_ipv4_addresses']) |
+                     map(attribute='0') }}"
+        brick: "{{ gluster_mountpoint }}/gv0-docker-volumes"
+      run_once: true
