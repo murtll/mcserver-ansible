@@ -60,7 +60,9 @@ storage-volumes:
   vars:
     node_labels:
       volumes: true
-      volume-type: nfs
+      volume-type: glusterfs
+    gluster_disk: /dev/sdb
+    gluster_mountpoint: /gluster/
   hosts:
     node6.mcbrawl.ru:
       ansible_host: xx.yy.zz.vv
