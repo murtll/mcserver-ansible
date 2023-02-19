@@ -1,25 +1,27 @@
-- hosts: prepare
+---
+- name: Disable root and password login
+  hosts: prepare
   gather_facts: true
   ignore_unreachable: true
   tasks:
-  - name: Disable password login
-    lineinfile:
-      dest: /etc/ssh/sshd_config
-      state: present
-      regexp: "^PasswordAuthentication"
-      line: "PasswordAuthentication no"
-    register: sshd_password_conf
+    - name: Disable password login
+      ansible.builtin.lineinfile:
+        dest: /etc/ssh/sshd_config
+        state: present
+        regexp: ^PasswordAuthentication
+        line: PasswordAuthentication no
+      notify: Restart SSHd
 
-  - name: Disable root login
-    lineinfile:
-      dest: /etc/ssh/sshd_config
-      state: present
-      regexp: "^PermitRootLogin"
-      line: "PermitRootLogin no"
-    register: sshd_root_conf
+    - name: Disable root login
+      ansible.builtin.lineinfile:
+        dest: /etc/ssh/sshd_config
+        state: present
+        regexp: ^PermitRootLogin
+        line: PermitRootLogin no
+      notify: Restart SSHd
 
-  - name: Restart SSHd
-    service:
-      name: ssh
-      state: restarted
-    when: sshd_password_conf.changed or sshd_root_conf.changed
+  handlers:
+    - name: Restart SSHd
+      ansible.builtin.service:
+        name: ssh
+        state: restarted

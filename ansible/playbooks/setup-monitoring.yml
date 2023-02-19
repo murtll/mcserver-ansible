@@ -1,3 +1,4 @@
+---
 - name: Setup monitoring
   hosts: monitoring
   become: false
@@ -74,7 +75,7 @@
         labels:
           traefik.enable: "true"
           traefik.docker.network: traefik-net
-          traefik.http.routers.grafana.rule: "Host(`{{ grafana_host }}`)"
+          traefik.http.routers.grafana.rule: Host(`{{ grafana_host }}`)
           traefik.http.routers.grafana.entrypoints: https
           traefik.http.routers.grafana.tls: "true"
           traefik.http.routers.grafana.tls.certResolver: letsencrypt

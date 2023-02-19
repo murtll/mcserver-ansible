@@ -1,28 +1,30 @@
-- hosts: prepare
+---
+- name: Add automation user
+  hosts: prepare
   gather_facts: true
   ignore_unreachable: true
   tasks:
-  - name: Create group
-    group:
-      name: "{{ new_user_group }}"
-      state: present
+    - name: Create group
+      ansible.builtin.group:
+        name: "{{ new_user_group }}"
+        state: present
 
-  - name: Create user account
-    user:
-      name: "{{ new_user }}"
-      groups: "sudo,{{ new_user_group }}"
-      shell: /bin/bash
-      state: present
+    - name: Create user account
+      ansible.builtin.user:
+        name: "{{ new_user }}"
+        groups: sudo,{{ new_user_group }}
+        shell: /bin/bash
+        state: present
 
-  - name: Add authorized keys
-    authorized_key:
-      user: "{{ new_user }}"
-      key: "{{ lookup('file', '../../ssh-keys/ssh-key.pub') }}"
-      state: present
+    - name: Add authorized keys
+      ansible.posix.authorized_key:
+        user: "{{ new_user }}"
+        key: "{{ lookup('file', '../../ssh-keys/ssh-key.pub') }}"
+        state: present
 
-  - name: Permit sudo without a password
-    lineinfile:
-      dest: /etc/sudoers
-      state: present
-      regexp: "^%{{ new_user_group }}"
-      line: "%{{ new_user_group }} ALL=(ALL) NOPASSWD:ALL"
+    - name: Permit sudo without a password
+      ansible.builtin.lineinfile:
+        dest: /etc/sudoers
+        state: present
+        regexp: ^%{{ new_user_group }}
+        line: "%{{ new_user_group }} ALL=(ALL) NOPASSWD:ALL"
