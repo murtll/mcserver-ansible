@@ -1,3 +1,4 @@
+---
 - name: Setup Traefik
   hosts: traefik
   become: false
@@ -18,8 +19,8 @@
         state: started
         restart_policy: always
         ports:
-          - "80:80"
-          - "443:443"
+          - 80:80
+          - 443:443
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock
           - traefik-certificates:/certificates
@@ -49,7 +50,7 @@
           --metrics.influxdb2.additionallabels.host={{ ansible_host }}
         labels:
           traefik.enable: "true"
-          traefik.http.routers.dashboard.rule: "Host(`{{ traefik_dashboard_host }}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+          traefik.http.routers.dashboard.rule: Host(`{{ traefik_dashboard_host }}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
           traefik.http.routers.dashboard.entrypoints: https
           traefik.http.routers.dashboard.tls: "true"
           traefik.http.routers.dashboard.tls.certResolver: letsencrypt
