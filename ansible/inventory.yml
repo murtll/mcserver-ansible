@@ -4,12 +4,15 @@ prepare:
     new_user: automation
     new_user_group: automation
   children:
+    swarm-manager:
+    swarm-worker:
 
 docker:
   vars:
     ansible_user: automation
   children:
-    traefik:
+    swarm-manager:
+    swarm-worker:
 
 webservers:
   children:
@@ -22,6 +25,48 @@ traefik:
 monitoring:
   children:
     website:
+
+swarm-manager-init:
+  hosts:
+    node1.mcbrawl.ru:
+      ansible_host: xx.yy.zz.vv
+      advertise_addr: xx.yy.zz.vv
+
+swarm-manager:
+  children:
+    swarm-manager-init:
+  hosts:
+    node2.mcbrawl.ru:
+      ansible_host: xx.yy.zz.vv
+      advertise_addr: xx.yy.zz.vv
+    node3.mcbrawl.ru:
+      ansible_host: xx.yy.zz.vv
+      advertise_addr: xx.yy.zz.vv
+
+swarm-worker:
+  children:
+    traefik:
+    storage-volumes:
+  hosts:
+    node4.mcbrawl.ru:
+      ansible_host: xx.yy.zz.vv
+      advertise_addr: xx.yy.zz.vv
+    node5.mcbrawl.ru:
+      ansible_host: xx.yy.zz.vv
+      advertise_addr: xx.yy.zz.vv
+
+storage-volumes:
+  vars:
+    node_labels:
+      volumes: true
+      volume-type: nfs
+  hosts:
+    node6.mcbrawl.ru:
+      ansible_host: xx.yy.zz.vv
+      advertise_addr: xx.yy.zz.vv
+    node7.mcbrawl.ru:
+      ansible_host: xx.yy.zz.vv
+      advertise_addr: xx.yy.zz.vv
 
 website:
   vars:

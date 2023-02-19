@@ -1,0 +1,42 @@
+- name: Initialize Swarm on the first node
+  hosts: swarm-manager-init
+  tasks:
+    - name: Init Swarm
+      community.docker.docker_swarm:
+        state: present
+        advertise_addr: "{{ advertise_addr }}"
+        listen_addr: "{{ advertise_addr }}"
+      register: swarm_init
+
+- name: Join manager nodes to the Swarm
+  hosts: swarm-manager:!swarm-manager-init
+  tasks:
+    - name: Join node to Swarm as manager
+      community.docker.docker_swarm:
+        state: join
+        join_token: "{{ swarm_init.swarm_facts.JoinTokens.Manager }}"
+        advertise_addr: "{{ advertise_addr }}"
+        listen_addr: "{{ advertise_addr }}"
+
+- name: Set manager node availability to drain
+  hosts: swarm-manager
+  tasks:
+    - name: Set manager nodes availability to drain
+      community.docker.docker_node:
+        hostname: "{{ inventory_hostname }}"
+        availability: drain
+
+- name: Join worker nodes to the Swarm
+  hosts: swarm-worker
+  tasks:
+    - name: Join node to Swarm as worker
+      community.docker.docker_swarm:
+        state: join
+        join_token: "{{ swarm_init.swarm_facts.JoinTokens.Worker }}"
+        advertise_addr: "{{ advertise_addr }}"
+        listen_addr: "{{ advertise_addr }}"
+
+    - name: Set worker nodes labels
+      community.docker.docker_node:
+        hostname: "{{ inventory_hostname }}"
+        labels: "{{ node_labels }}"
