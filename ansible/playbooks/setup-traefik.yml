@@ -54,8 +54,11 @@
           traefik.http.routers.dashboard.tls: "true"
           traefik.http.routers.dashboard.tls.certResolver: letsencrypt
           traefik.http.routers.dashboard.service: api@internal
-          traefik.http.routers.dashboard.middlewares: auth
-          traefik.http.middlewares.auth.basicauth.users: "{{ traefik_dashboard_basic_auth }}"
+          traefik.http.routers.dashboard.middlewares: dashboard-auth,default-ratelimit
+          traefik.http.middlewares.dashboard-auth.basicauth.users: "{{ traefik_dashboard_basic_auth }}"
+          traefik.http.middlewares.default-ratelimit.ratelimit.period: 1s
+          traefik.http.middlewares.default-ratelimit.ratelimit.average: '100'
+          traefik.http.middlewares.default-ratelimit.ratelimit.burst: '50'
         healthcheck:
           test: traefik healthcheck --ping
           interval: 10s
